@@ -6,8 +6,14 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   var controller = WebViewController()
     ..setJavaScriptMode(JavaScriptMode.unrestricted)
     ..setBackgroundColor(const Color(0x00000000))
@@ -22,14 +28,27 @@ class MyApp extends StatelessWidget {
       ),
     )
     ..loadRequest(Uri.parse('https://sokorim.com/'));
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Soko',
-      home: Scaffold(
-        body: SafeArea(child: WebViewWidget(controller: controller)),
+      home: WillPopScope(
+        onWillPop: () => _exitApp(context),
+        child: Scaffold(
+          body: SafeArea(child: WebViewWidget(controller: controller)),
+        ),
       ),
     );
+  }
+
+  Future<bool> _exitApp(BuildContext context) async {
+    if (await controller.canGoBack()) {
+      controller.goBack();
+      return Future.value(false);
+    } else {
+      return Future.value(true);
+    }
   }
 }
